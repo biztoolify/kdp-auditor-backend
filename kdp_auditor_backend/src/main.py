@@ -1,9 +1,9 @@
 import os
 import sys
-# DON'T CHANGE THIS !!!
+# DON\'T CHANGE THIS !!!
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, request
 from flask_cors import CORS
 from src.models.user import db
 from src.models.kdp_models import Book, BestsellerRank, Keyword, BookKeyword, Category, BookCategory
@@ -31,6 +31,11 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 
+# Entry point for Google Cloud Functions
+def kdp_auditor_function(request):
+    with app.request_context(request.environ):
+        return app.full_dispatch_request()
+
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
@@ -46,7 +51,3 @@ def serve(path):
             return send_from_directory(static_folder_path, 'index.html')
         else:
             return "index.html not found", 404
-
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
